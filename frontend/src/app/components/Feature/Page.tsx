@@ -118,11 +118,11 @@ const ServiceSelection: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col-reverse lg:flex-row items-stretch justify-center pt-36 pb-10 px-2 sm:px-4 gap-8 max-h-[600px]">
+    <div className="w-full flex flex-col-reverse lg:flex-row items-stretch lg:items-center justify-center pt-36 pb-10 px-2 sm:px-4 gap-8">
       {/* Left: Feature selection */}
-      <div className="flex-1 w-full max-w-2xl flex flex-col items-center justify-center h-full max-h-[600px]">
+      <div className="flex-1 w-full max-w-2xl flex flex-col items-center justify-center">
         <div className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl mx-auto p-2 sm:p-6 bg-white rounded-xl">
-          <h2 className="text-2xl sm:text-4xl font-bold text-center text-gray-800 mb-6">From Booking to Service in Under 10 Minutes</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6">From Booking to Service in Under 10 Minutes</h2>
           <div className="grid grid-cols-2 gap-4 sm:gap-6">
             {services.map((service) => (
               <div
@@ -151,7 +151,7 @@ const ServiceSelection: React.FC = () => {
         {isCarpenterPopupOpen && <CarpenterPopup onClose={closeCarpenterPopup} />}
       </div>
       {/* Right: Image */}
-      <div className="flex-1 w-full max-w-xs sm:max-w-md md:max-w-xl flex items-center justify-center mb-6 lg:mb-0 h-full max-h-[600px]">
+      <div className="hidden lg:flex flex-1 w-full max-w-xs sm:max-w-md md:max-w-xl items-center justify-center mb-6 lg:mb-0 mt-22">
         <Image
           src={landingImage}
           alt="Home services at your doorstep"
