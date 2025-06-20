@@ -1,15 +1,5 @@
-@property --v {
-    syntax: '<percentage>';
-    inherits: false;
-    initial-value: 0%;
-}
-
-/* ADDED: Custom property for goal progress */
-@property --progress {
-    syntax: '<percentage>';
-    inherits: false;
-    initial-value: 0%;
-}
+/* Removed @property rules that can cause deployment issues */
+/* Using standard CSS fallbacks instead */
 
 /* CSS Custom Properties - moved to avoid CSS module issues */
 .dashboardContainer {

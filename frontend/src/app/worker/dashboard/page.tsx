@@ -118,16 +118,38 @@ export default function WorkerDashboardPage() {
   const [goalInput, setGoalInput] = useState("2000");
   const [isEditingGoal, setIsEditingGoal] = useState(false);
 
-  // --- ADDED: useEffect to load profile from localStorage ---
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-        setProfile(JSON.parse(savedProfile));
+  // --- ADDED: Safe localStorage access with error handling ---
+  const getLocalStorage = (key: string, defaultValue: any) => {
+    try {
+      if (typeof window !== 'undefined') {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : defaultValue;
+      }
+      return defaultValue;
+    } catch (error) {
+      console.warn(`Error reading from localStorage for key ${key}:`, error);
+      return defaultValue;
     }
+  };
+
+  const setLocalStorage = (key: string, value: any) => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+    } catch (error) {
+      console.warn(`Error writing to localStorage for key ${key}:`, error);
+    }
+  };
+
+  // --- MODIFIED: useEffect to load profile from localStorage with error handling ---
+  useEffect(() => {
+    const savedProfile = getLocalStorage('userProfile', { firstName: 'Worker', imageUrl: null });
+    setProfile(savedProfile);
   }, []);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('worker-theme') || 'light';
+    const savedTheme = getLocalStorage('worker-theme', 'light');
     setTheme(savedTheme);
     document.documentElement.className = savedTheme === 'dark' ? styles.darkTheme : '';
   }, []);
@@ -147,23 +169,53 @@ export default function WorkerDashboardPage() {
   useEffect(() => {
     if (isLive) {
       setLocationError(null);
+      // Check if geolocation is supported
+      if (!navigator.geolocation) {
+        setLocationError("Geolocation is not supported by this browser.");
+        setIsLive(false);
+        return;
+      }
+      
       navigator.geolocation.getCurrentPosition(
-        (position) => { setLocation({ lat: position.coords.latitude, lng: position.coords.longitude }); },
+        (position) => { 
+          setLocation({ lat: position.coords.latitude, lng: position.coords.longitude }); 
+        },
         (error) => {
           console.error("Error getting location:", error);
-          setLocationError("Could not get location. Please enable location services.");
+          let errorMessage = "Could not get location. Please enable location services.";
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = "Location access denied. Please enable location permissions.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = "Location information unavailable.";
+              break;
+            case error.TIMEOUT:
+              errorMessage = "Location request timed out.";
+              break;
+          }
+          setLocationError(errorMessage);
           setIsLive(false);
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
       );
+      
       watchIdRef.current = navigator.geolocation.watchPosition(
-        (position) => { setLocation({ lat: position.coords.latitude, lng: position.coords.longitude }); }
+        (position) => { 
+          setLocation({ lat: position.coords.latitude, lng: position.coords.longitude }); 
+        },
+        (error) => {
+          console.error("Error watching location:", error);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
       );
     } else {
       if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
       setLocation(null);
     }
-    return () => { if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current); };
+    return () => { 
+      if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current); 
+    };
   }, [isLive]);
 
   const fetchRoute = async (start: {lat: number, lng: number}, end: LatLngTuple) => {
@@ -237,14 +289,19 @@ export default function WorkerDashboardPage() {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('worker-theme', newTheme);
+    setLocalStorage('worker-theme', newTheme);
     document.documentElement.className = newTheme === 'dark' ? styles.darkTheme : '';
   };
   
-  // --- MODIFIED: Logout logic to clear data and redirect ---
+  // --- MODIFIED: Logout logic to clear data and redirect with error handling ---
   const handleLogout = () => {
-    localStorage.removeItem('userProfile'); // Clear profile data for a full logout
-    router.push('/'); // Redirect to homepage
+    try {
+      localStorage.removeItem('userProfile');
+      localStorage.removeItem('worker-theme');
+    } catch (error) {
+      console.warn('Error clearing localStorage during logout:', error);
+    }
+    router.push('/');
   };
 
   const formatTime = (totalSeconds: number) => {

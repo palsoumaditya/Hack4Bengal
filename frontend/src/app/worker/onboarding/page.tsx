@@ -49,7 +49,7 @@ export default function WorkerOnboardingPage() {
   // Effect to auto-fill email from user profile
   useEffect(() => {
     if (user?.email) {
-      setFormData(prev => ({ ...prev, email: user.email }));
+      setFormData(prev => ({ ...prev, email: user.email || '' }));
     }
   }, [user]);
 
@@ -133,7 +133,9 @@ export default function WorkerOnboardingPage() {
     
     setTimeout(() => {
       console.log("Submitting data:", formData);
-      localStorage.setItem(`workerProfile_${user.did}`, JSON.stringify(formData));
+      // Use user.id or a fallback if did doesn't exist
+      const userId = (user as any).did || user.id || 'default';
+      localStorage.setItem(`workerProfile_${userId}`, JSON.stringify(formData));
       setSubmissionStatus('success');
       setTimeout(() => router.push('/worker/dashboard'), 1500); 
     }, 2000); 
