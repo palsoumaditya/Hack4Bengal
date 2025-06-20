@@ -181,7 +181,7 @@ const [minuteRotation, setMinuteRotation] = useState(0);
 Tired of Waiting for That "One Known Guy"?
 </h1>
  <p className="text-base md:text-lg text-gray-600 mb-8 max-w-xl">
- Skip the endless calls and no-shows. With Track-N-Fix, you can find verified workers nearby — plumbers, electricians, carpenters & more — and get help at your doorstep, instantly.<br /><br />
+ Skip the endless calls and no-shows. With Go-Fix-O, you can find verified workers nearby — plumbers, electricians, carpenters & more — and get help at your doorstep, instantly.<br /><br />
  Track their arrival in real-time with our animated clock.<br />
  No more guessing. No more delays.
  </p>

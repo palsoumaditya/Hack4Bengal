@@ -4,6 +4,7 @@ import { useUser } from '@civic/auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from '@/app/components/ui/LoadingSpinner';
+import Link from 'next/link';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
 

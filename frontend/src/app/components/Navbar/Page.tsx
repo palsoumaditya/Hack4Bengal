@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { UserButton, useUser } from "@civic/auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // --- SVG Icon Components (Replaces @tabler/icons-react) ---
 const IconMapPin = ({ size = 24, className = "" }) => (
@@ -130,9 +131,9 @@ export default function App() {
 
   // --- NAVIGATION ITEMS ---
   const navItems = [
-    { name: "Home", link: "#home" },
-    { name: "About Us", link: "#about" },
-    { name: "Worker", link: "#worker" },
+    { name: "Home", link: "/" },
+    { name: "About Us", link: "/about" },
+    { name: "Worker", link: "/worker" },
   ];
 
   // --- EVENT HANDLERS & EFFECTS ---
@@ -161,18 +162,18 @@ export default function App() {
 
           {/* ====== Left Section: Logo and Main Navigation ====== */}
           <div className="flex items-center space-x-8">
-            <a href="#home" className="flex-shrink-0 font-bold text-2xl text-gray-800">
+            <Link href="/" className="flex-shrink-0 font-bold text-2xl text-gray-800">
               Go-Fix-O
-            </a>
+            </Link>
             <div className="hidden md:flex items-center space-x-6">
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.name}
                   href={item.link}
                   className="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   {item.name}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -320,14 +321,14 @@ export default function App() {
             {/* Mobile Nav Links */}
             <div className="space-y-1">
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.name}
                   href={item.link}
                   className="block text-gray-600 hover:bg-gray-100 hover:text-blue-600 px-3 py-2 rounded-md text-base font-medium transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
