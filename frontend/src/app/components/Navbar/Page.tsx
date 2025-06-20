@@ -125,6 +125,8 @@ export default function App() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [location, setLocation] = useState("");
+  const [autoLocation, setAutoLocation] = useState<string>("");
+  const [isLocationPopupOpen, setIsLocationPopupOpen] = useState(false);
 
   // --- REFS for Click Outside Logic ---
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
@@ -152,6 +154,25 @@ export default function App() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [profileMenuRef, locationRef]);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const data = await res.json();
+            if (data.display_name) {
+              setAutoLocation(data.display_name);
+              setLocation(data.display_name);
+            }
+          } catch (e) {}
+        },
+        () => {}
+      );
+    }
+  }, []);
 
   const { user, signOut } = useUser();
   const router = useRouter();
@@ -185,13 +206,13 @@ export default function App() {
             {/* Location Selector (Desktop) */}
             <div className="hidden lg:flex relative" ref={locationRef}>
               <button
-                className="flex items-center space-x-2 border rounded-lg px-4 py-2 hover:bg-transparent transition"
+                className="flex items-center space-x-2 border rounded-lg px-4 py-2 hover:bg-transparent transition w-64"
                 onClick={() => setIsLocationOpen((v) => !v)}
                 type="button"
               >
                 <IconMapPin size={20} className="text-gray-500" />
                 <span className="truncate text-gray-700 text-sm font-medium">
-                  {location ? location : "Select Location"}
+                  {location ? location : autoLocation ? autoLocation : "Select Location"}
                 </span>
                 <IconChevronDown size={18} className="text-gray-400" />
               </button>
@@ -204,13 +225,33 @@ export default function App() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     autoFocus
+                    onClick={() => setIsLocationPopupOpen(true)}
                   />
                   {/* Optionally, add a list of suggestions here */}
                 </div>
               )}
+              {isLocationPopupOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-[90vw] min-w-[350px] mx-4 relative animate-fadeIn">
+                    <button
+                      className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+                      onClick={() => setIsLocationPopupOpen(false)}
+                      aria-label="Close"
+                    >
+                      &times;
+                    </button>
+                    <h2 className="text-xl font-bold mb-4 text-center text-gray-800">Your Current Location</h2>
+                    {autoLocation ? (
+                      <div className="text-gray-700 text-center break-words text-base font-medium whitespace-pre-line">{autoLocation}</div>
+                    ) : (
+                      <div className="text-gray-400 text-center">Location not available</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             <div className="hidden md:flex">
-              <div className="flex items-center border rounded-lg px-3 py-2 w-full max-w-xs">
+              <div className="flex items-center border rounded-lg px-3 py-2 w-56">
                 <IconSearch size={20} className="text-gray-400 mr-2" />
                 <input
                   type="text"
