@@ -22,9 +22,6 @@ const ServiceBookingPage: React.FC = () => {
   const { user, signIn } = useUser();
   const { cart, addToCart } = useCart();
 
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedWorker, setSelectedWorker] = useState<string>('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('cod');
   const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
   const [coupon, setCoupon] = useState('');
@@ -154,20 +151,6 @@ const ServiceBookingPage: React.FC = () => {
     category: category
   };
 
-  const availableWorkers = [
-    { id: '1', name: 'Rahul Kumar', rating: 4.8, experience: '5 years', image: '👨‍💼' },
-    { id: '2', name: 'Amit Singh', rating: 4.9, experience: '7 years', image: '👨‍💼' },
-    { id: '3', name: 'Vikram Patel', rating: 4.7, experience: '4 years', image: '👨‍💼' },
-    { id: '4', name: 'Priya Sharma', rating: 4.9, experience: '6 years', image: '👩‍💼' },
-    { id: '5', name: 'Neha Gupta', rating: 4.8, experience: '5 years', image: '👩‍💼' },
-  ];
-
-  const timeSlots = [
-    '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-    '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM',
-    '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM'
-  ];
-
   const isInCart = cart.some(item => item.name === currentService.name && item.category === currentService.category);
 
   const handleBooking = async () => {
@@ -226,8 +209,8 @@ const ServiceBookingPage: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-8">
-          {/* Left Column - Service Details */}
-          <div className="space-y-6">
+          {/* Left Column - Service Details & Booking */}
+          <div className="w-full space-y-6">
             {/* Service Information */}
             <div className="rounded-xl p-8">
               <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Service Details</h2>
@@ -253,10 +236,16 @@ const ServiceBookingPage: React.FC = () => {
                 {isInCart ? 'Added to Cart' : 'Add to Cart'}
               </button>
             </div>
-          </div>
 
-          {/* Right Column - Booking Summary */}
-          <div>
+            <SuggestedServices
+              currentCategory={currentService.category}
+              currentServiceName={currentService.name}
+              services={serviceDetails}
+              addToCart={addToCart}
+              cart={cart}
+            />
+
+            {/* Right Column - Booking Summary */}
             <div className="rounded-xl p-8 bg-gray-50">
               <h2 className="text-2xl font-bold mb-6 passion-one-black text-gray-800">Booking Summary</h2>
               {/* Coupon Input */}
@@ -302,7 +291,7 @@ const ServiceBookingPage: React.FC = () => {
               <div className="border-t border-gray-200 pt-4 mb-6">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Original Price:</span>
-                  <span className="text-gray-800 line-through">₹{currentService.price}</span>
+                  <span className="text-gray-800">₹{currentService.price}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Discount:</span>
@@ -371,35 +360,98 @@ const ServiceBookingPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="border-t border-gray-200 pt-4 mb-6">
-                <div className="flex justify-between items-center">
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex justify-between items-center mb-4">
                   <span className="text-lg font-semibold text-gray-800">Total Amount:</span>
                   <span className="text-2xl font-bold text-yellow-600">₹{currentService.price - discount}</span>
                 </div>
+
+                <button
+                  onClick={handleBooking}
+                  disabled={!selectedPaymentMethod}
+                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
+                    selectedPaymentMethod
+                      ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {isBookingConfirmed ? 'Booking Confirmed!' : selectedPaymentMethod === 'cod' ? 'Book Now (Pay Later)' : 'Pay & Book Now'}
+                </button>
+
+                {isBookingConfirmed && (
+                  <div className="mt-4 p-4 bg-green-100 rounded-lg">
+                    <p className="text-green-800 text-center">
+                      Your booking has been confirmed! Redirecting to tracking...
+                    </p>
+                  </div>
+                )}
               </div>
-
-              <button
-                onClick={handleBooking}
-                disabled={!selectedPaymentMethod}
-                className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
-                  selectedPaymentMethod
-                    ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {isBookingConfirmed ? 'Booking Confirmed!' : selectedPaymentMethod === 'cod' ? 'Book Now (Pay Later)' : 'Pay & Book Now'}
-              </button>
-
-              {isBookingConfirmed && (
-                <div className="mt-4 p-4 bg-green-100 rounded-lg">
-                  <p className="text-green-800 text-center">
-                    Your booking has been confirmed! Redirecting to tracking...
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+};
+
+interface SuggestedServicesProps {
+  currentCategory: string;
+  currentServiceName: string;
+  services: Record<string, ServiceDetails>;
+  addToCart: (service: any) => void;
+  cart: any[];
+}
+
+const SuggestedServices: React.FC<SuggestedServicesProps> = ({
+  currentCategory,
+  currentServiceName,
+  services,
+  addToCart,
+  cart,
+}) => {
+  const suggested = Object.values(services)
+    .filter(
+      (s) =>
+        s.category === currentCategory && s.name !== currentServiceName
+    )
+    .slice(0, 4);
+
+  if (suggested.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl p-6">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">You might also like</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {suggested.map((service) => {
+          const isInCart = cart.some((item) => item.name === service.name);
+          return (
+            <div
+              key={service.name}
+              className="rounded-lg bg-gray-50 p-4 flex flex-col items-center justify-between text-center border border-gray-200"
+            >
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-2xl mb-2">
+                {service.icon}
+              </div>
+              <p className="font-semibold text-gray-700 text-sm leading-tight h-10 mb-1">
+                {service.name}
+              </p>
+              <p className="font-bold text-yellow-600 mb-3">₹{service.price}</p>
+              <button
+                onClick={() => !isInCart && addToCart(service)}
+                disabled={isInCart}
+                className={`w-full px-3 py-1.5 text-sm font-semibold rounded-md transition-colors ${
+                  isInCart
+                    ? 'bg-gray-200 text-gray-500'
+                    : 'bg-yellow-400 text-white hover:bg-yellow-500'
+                }`}
+              >
+                {isInCart ? 'Added' : 'Add'}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
