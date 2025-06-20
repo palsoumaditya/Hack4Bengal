@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@civic/auth/react';
+import { useCart } from '../cart/cartContext';
 
 interface ServiceDetails {
   name: string;
@@ -19,6 +20,7 @@ const ServiceBookingPage: React.FC = () => {
   const serviceName = searchParams.get('service') || 'Haircut';
   const category = searchParams.get('category') || 'Hair Services';
   const { user, signIn } = useUser();
+  const { cart, addToCart } = useCart();
 
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -166,6 +168,8 @@ const ServiceBookingPage: React.FC = () => {
     '05:00 PM', '06:00 PM', '07:00 PM', '08:00 PM'
   ];
 
+  const isInCart = cart.some(item => item.name === currentService.name && item.category === currentService.category);
+
   const handleBooking = async () => {
     if (!user) {
       try {
@@ -241,6 +245,13 @@ const ServiceBookingPage: React.FC = () => {
                   <p className="text-gray-800 leading-relaxed">{currentService.description}</p>
                 </div>
               </div>
+              <button
+                className={`mt-6 w-full py-3 rounded-xl font-semibold text-lg transition-all duration-200 ${isInCart ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg hover:shadow-xl'}`}
+                onClick={() => !isInCart && addToCart({ name: currentService.name, price: currentService.price, category: currentService.category })}
+                disabled={isInCart}
+              >
+                {isInCart ? 'Added to Cart' : 'Add to Cart'}
+              </button>
             </div>
           </div>
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { UserButton, useUser } from "@civic/auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useCart } from '../../booking/cart/cartContext';
 
 // --- SVG Icon Components (Replaces @tabler/icons-react) ---
 const IconMapPin = ({ size = 24, className = "" }) => (
@@ -154,6 +155,7 @@ export default function App() {
 
   const { user, signOut } = useUser();
   const router = useRouter();
+  const { cart } = useCart();
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white font-sans border-b border-gray-200">
@@ -218,12 +220,14 @@ export default function App() {
               </div>
             </div>
             <div className="relative">
-              <button className="p-2 rounded-full hover:bg-transparent transition-colors">
+              <button className="p-2 rounded-full hover:bg-transparent transition-colors" onClick={() => router.push('/booking/cart')}>
                 <IconShoppingCart size={24} className="text-gray-700" />
               </button>
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                1
-              </span>
+              {cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  {cart.length}
+                </span>
+              )}
             </div>
             <div className="relative" ref={profileMenuRef}>
               <button
