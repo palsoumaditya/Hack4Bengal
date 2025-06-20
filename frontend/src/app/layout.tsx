@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavbarDemo from "@/app/components/Navbar/Page";
 import FooterSecond from "@/app/components/Footer/Page";
+import { CivicAuthProvider } from "@civic/auth/nextjs";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -28,11 +30,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        <NavbarDemo/>
-        <main className="flex-1">
-          {children}
-        </main>
-        <FooterSecond/>
+        <CivicAuthProvider>
+          <NavbarDemo/>
+          <main className="flex-1">
+            {children}
+          </main>
+          <FooterSecond/>
+        </CivicAuthProvider>
       </body>
     </html>
   );

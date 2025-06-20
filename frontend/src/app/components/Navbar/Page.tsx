@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { UserButton, useUser } from "@civic/auth/react";
+import { useRouter } from "next/navigation";
 
 // --- SVG Icon Components (Replaces @tabler/icons-react) ---
 const IconMapPin = ({ size = 24, className = "" }) => (
@@ -149,6 +151,9 @@ export default function App() {
     };
   }, [profileMenuRef, locationRef]);
 
+  const { user, signOut } = useUser();
+  const router = useRouter();
+
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white font-sans border-b border-gray-200">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -228,19 +233,42 @@ export default function App() {
                 <IconUser size={24} className="text-gray-700" />
               </button>
               {isProfileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                <div className="absolute right-0 mt-3 min-w-[12rem] bg-white rounded-md shadow-xl border border-gray-200 z-50 py-2 px-3 ring-1 ring-black ring-opacity-5 transition-all duration-150">
                   <div className="px-4 py-2">
-                    <p className="text-sm text-gray-700">Welcome, Guest!</p>
+                    {user ? (
+                      <p className="text-sm text-gray-700">Hello, {user.name || 'User'}!</p>
+                    ) : (
+                      <p className="text-sm text-gray-700">Welcome, Guest!</p>
+                    )}
                   </div>
                   <div className="border-t border-gray-100"></div>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bookings</a>
-                  <div className="border-t border-gray-100"></div>
-                   <div className="p-2">
-                     <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors">
-                        Login / Sign Up
-                     </button>
-                   </div>
+                  {user ? (
+                    <>
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          router.push('/profile');
+                        }}
+                      >
+                        Profile
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 mt-1 text-sm font-semibold text-white bg-yellow-500 rounded-md hover:bg-yellow-400 transition-colors duration-200"
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          signOut();
+                        }}
+                      >
+                        Log Out
+                      </button>
+                      <div className="border-t border-gray-100"></div>
+                    </>
+                  ) : (
+                    <div className="p-2">
+                      <UserButton />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
