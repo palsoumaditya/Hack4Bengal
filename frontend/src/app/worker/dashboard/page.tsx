@@ -330,7 +330,7 @@ export default function WorkerDashboardPage() {
             <div className={styles.rightSidebar}>
                 <div className={styles.statCardRow}>
                     <div className={`${styles.card} ${styles.statCard}`}>
-                        <div className={styles.statIconContainer} style={{ '--icon-bg-color': 'rgba(16, 185, 129, 0.1)', '--icon-color': 'var(--accent-green)' }}>
+                        <div className={`${styles.statIconContainer} ${styles.earnings}`}>
                             <FiDollarSign className={styles.statIcon}/>
                         </div>
                         <div className={styles.statTextContainer}>
@@ -339,7 +339,7 @@ export default function WorkerDashboardPage() {
                         </div>
                     </div>
                     <div className={`${styles.card} ${styles.statCard}`}>
-                        <div className={styles.statIconContainer} style={{ '--icon-bg-color': 'rgba(59, 130, 246, 0.1)', '--icon-color': 'var(--accent-blue)' }}>
+                        <div className={`${styles.statIconContainer} ${styles.time}`}>
                             <FiClock className={styles.statIcon}/>
                         </div>
                         <div className={styles.statTextContainer}>
@@ -348,7 +348,7 @@ export default function WorkerDashboardPage() {
                         </div>
                     </div>
                     <div className={`${styles.card} ${styles.statCard}`}>
-                        <div className={styles.statIconContainer} style={{ '--icon-bg-color': 'rgba(139, 92, 246, 0.1)', '--icon-color': 'var(--accent-purple)' }}>
+                        <div className={`${styles.statIconContainer} ${styles.jobs}`}>
                             <FiCheckCircle className={styles.statIcon}/>
                         </div>
                         <div className={styles.statTextContainer}>

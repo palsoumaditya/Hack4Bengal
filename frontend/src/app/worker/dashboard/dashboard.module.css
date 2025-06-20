@@ -430,6 +430,31 @@
     background-color: var(--icon-bg-color);
 }
 
+/* Icon container variants */
+.statIconContainer.earnings {
+    background-color: rgba(16, 185, 129, 0.1);
+}
+
+.statIconContainer.earnings .statIcon {
+    color: var(--accent-green);
+}
+
+.statIconContainer.time {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.statIconContainer.time .statIcon {
+    color: var(--accent-blue);
+}
+
+.statIconContainer.jobs {
+    background-color: rgba(139, 92, 246, 0.1);
+}
+
+.statIconContainer.jobs .statIcon {
+    color: var(--accent-purple);
+}
+
 .statIcon {
     font-size: 1.2rem;
     color: var(--icon-color);
