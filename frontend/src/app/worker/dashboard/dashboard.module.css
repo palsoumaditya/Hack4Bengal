@@ -11,7 +11,8 @@
     initial-value: 0%;
 }
 
-:root {
+/* CSS Custom Properties - moved to avoid CSS module issues */
+.dashboardContainer {
     --app-bg: #f4f7fa;
     --card-bg: #ffffff;
     --primary-text: #111827;
