@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent, useRef, useEffect } from "react";
-import styles from "./onboarding.module.css"; // This path is correct if both files are in the same folder.
+import styles from "./onboarding.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useUser } from "@civic/auth/react";
@@ -60,7 +60,6 @@ const formatPhoneNumber = (phoneNumber: string): string => {
   if (cleanNumber.length !== 10) {
     throw new Error("Phone number must be exactly 10 digits");
   }
-
   // Add +91 country code
   return `+91${cleanNumber}`;
 };
@@ -125,7 +124,6 @@ const uploadImageToCloudinary = async (file: File): Promise<string> => {
           console.error("Fallback upload failed:", fallbackErrorText);
         }
       }
-
       throw new Error(
         `Cloudinary upload failed: ${response.status} - ${errorText}`
       );
@@ -328,7 +326,8 @@ export default function WorkerOnboardingPage() {
         email: formData.email,
         password: formData.password || undefined, // Optional field
         profilePicture: profilePictureUrl || undefined,
-        address: formData.location,
+        location: formData.location,
+
         description: formData.description || undefined,
         phoneNumber: formattedPhoneNumber,
         dateOfBirth: formData.dateOfBirth, // Will be converted to Date on backend
@@ -800,6 +799,6 @@ export default function WorkerOnboardingPage() {
           </div>
         </div>
       )}
-    </div>
-  );
+    </div>
+  );
 }
