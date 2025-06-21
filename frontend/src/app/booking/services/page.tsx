@@ -872,6 +872,37 @@ const parseDurationToMinutes = (duration: string): number => {
   return 60; // Default to 60 minutes
 };
 
+const parseDurationToMinutes = (duration: string): number => {
+  const durationLower = duration.toLowerCase();
+  const parts = durationLower.split(' ');
+
+  if (parts.length < 2) {
+    return 60; // Default if format is unexpected
+  }
+
+  try {
+    const valuePart = parts[0];
+    const unitPart = parts[1];
+    const value = parseInt(valuePart.split('-')[0], 10);
+
+    if (isNaN(value)) {
+      return 60;
+    }
+
+    if (unitPart.startsWith('hour')) {
+      return value * 60;
+    }
+    if (unitPart.startsWith('min')) {
+      return value;
+    }
+  } catch (e) {
+    console.error('Could not parse duration:', duration);
+  }
+
+  return 60; // Default to 60 minutes
+};
+
+
 const ServiceBookingPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -927,101 +958,20 @@ const ServiceBookingPage: React.FC = () => {
       } catch (err) {
         alert("Sign-in failed. Please try again.");
       }
-      return;
+      return; // Return after signIn prompt, user will have to click again
     }
 
-    if (!("geolocation" in navigator)) {
-      alert("Geolocation is not supported by your browser.");
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by your browser.');
       return;
     }
-
-    // Get user's location
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-
-        try {
-          // First, get the userId from backend using email
-          const userEmail = user.email;
-          if (!userEmail) {
-            alert("User email not found. Please try signing in again.");
-            return;
-          }
-
-          let userId: string;
-
-          // First, try to get existing user by email
-          const userResponse = await fetch(
-            `http://localhost:5000/api/v1/users/email/${encodeURIComponent(
-              userEmail
-            )}`
-          );
-          console.log(userResponse);
-
-          if (userResponse.ok) {
-            // User exists, get the userId
-            const userData = await userResponse.json();
-            userId = userData.id;
-          } else if (userResponse.status === 404) {
-            // User doesn't exist, create new user first
-            const createUserResponse = await fetch(
-              "http://localhost:5000/api/v1/users",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  email: userEmail,
-                  firstName: user.name?.split(" ")[0] || "User",
-                  lastName: user.name?.split(" ").slice(1).join(" ") || "Name",
-                  phoneNumber: "000000000000",
-                }),
-              }
-            );
-
-            if (!createUserResponse.ok) {
-              throw new Error("Failed to create user");
-            }
-
-            const newUser = await createUserResponse.json();
-            userId = newUser.data.id;
-          } else {
-            throw new Error("Failed to get user information");
-          }
-
-          // Now we have the userId, create the job
-          const jobData = {
-            userId: userId,
-            description: `${currentService.name}: ${currentService.description}`,
-            location: "User's location", // You can improve this with reverse geocoding
-            lat: latitude,
-            lng: longitude,
-            status: "pending",
-            bookedFor:
-              selectedDate && selectedTime
-                ? new Date(`${selectedDate}T${selectedTime}`).toISOString()
-                : undefined,
-            durationMinutes: parseDurationToMinutes(currentService.duration),
-          };
-
-          const newJob = await createJob(jobData);
-          console.log("Job created successfully:", newJob);
-
-          // Redirect to job tracking page
-          router.push(`/job-tracking?jobId=${newJob.id}`);
-        } catch (error) {
-          console.error("Error creating job:", error);
-          alert("Failed to create job. Please try again.");
-        }
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        alert(
-          "Unable to retrieve your location. Please enable location services and try again."
-        );
-      }
-    );
+    if (selectedPaymentMethod) {
+      setIsBookingConfirmed(true);
+      // Here you would typically make an API call to book the service
+      setTimeout(() => {
+        router.push('/mapping');
+      }, 2000);
+    }
   };
 
   const handleApplyCoupon = () => {
