@@ -5,11 +5,98 @@ import styles from './onboarding.module.css'; // This path is correct if both fi
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@civic/auth/react';
+import { CLOUDINARY_CONFIG } from '@/config/cloudinary';
 
 // --- Icon Components ---
 const CameraIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={styles.uploaderIcon}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>);
 const CrossIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
 const LocationPinIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path></svg>);
+
+// Function to format phone number with country code
+const formatPhoneNumber = (phoneNumber: string): string => {
+  // Remove any existing country code or special characters
+  const cleanNumber = phoneNumber.replace(/^\+91/, '').replace(/\D/g, '');
+  
+  // Validate it's a 10-digit number
+  if (cleanNumber.length !== 10) {
+    throw new Error('Phone number must be exactly 10 digits');
+  }
+  
+  // Add +91 country code
+  return `+91${cleanNumber}`;
+};
+
+// Function to validate phone number format
+const validatePhoneNumber = (phoneNumber: string): boolean => {
+  const cleanNumber = phoneNumber.replace(/^\+91/, '').replace(/\D/g, '');
+  return cleanNumber.length === 10 && /^\d{10}$/.test(cleanNumber);
+};
+
+// Function to upload image to Cloudinary
+const uploadImageToCloudinary = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  // Try with upload preset first
+  if (CLOUDINARY_CONFIG.uploadPreset && CLOUDINARY_CONFIG.uploadPreset !== 'ml_default') {
+    formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+  }
+  
+  // Remove cloud_name from formData as it's already in the URL
+  // formData.append('cloud_name', CLOUDINARY_CONFIG.cloudName);
+
+  console.log('Uploading to Cloudinary:', {
+    url: CLOUDINARY_CONFIG.uploadUrl,
+    uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
+    fileName: file.name,
+    fileSize: file.size
+  });
+
+  try {
+    const response = await fetch(CLOUDINARY_CONFIG.uploadUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    console.log('Cloudinary response status:', response.status);
+    console.log('Cloudinary response headers:', response.headers);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Cloudinary error response:', errorText);
+      
+      // If upload preset fails, try without it (for testing)
+      if (response.status === 400 && errorText.includes('upload_preset')) {
+        console.log('Trying without upload preset...');
+        const fallbackFormData = new FormData();
+        fallbackFormData.append('file', file);
+        
+        const fallbackResponse = await fetch(CLOUDINARY_CONFIG.uploadUrl, {
+          method: 'POST',
+          body: fallbackFormData,
+        });
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          console.log('Fallback upload successful:', fallbackData);
+          return fallbackData.secure_url;
+        } else {
+          const fallbackErrorText = await fallbackResponse.text();
+          console.error('Fallback upload failed:', fallbackErrorText);
+        }
+      }
+      
+      throw new Error(`Cloudinary upload failed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Cloudinary success response:', data);
+    return data.secure_url; // Return the secure URL
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw new Error(`Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+};
 
 export default function WorkerOnboardingPage() {
   const router = useRouter();
@@ -23,6 +110,7 @@ export default function WorkerOnboardingPage() {
     email: '',
     password: '',
     profilePicture: null as File | null,
+    profilePictureUrl: '', // New field to store the uploaded image URL
     address: '',
     description: '',
     phoneNumber: '',
@@ -71,7 +159,7 @@ export default function WorkerOnboardingPage() {
   const handleRemoveImage = () => {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
-    setFormData(prev => ({ ...prev, profilePicture: null }));
+    setFormData(prev => ({ ...prev, profilePicture: null, profilePictureUrl: '' }));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -130,37 +218,64 @@ export default function WorkerOnboardingPage() {
       return;
     }
     
+    // Validate phone number before submission
+    if (!validatePhoneNumber(formData.phoneNumber)) {
+      setErrorMessage('Please enter a valid 10-digit phone number.');
+      setSubmissionStatus('error');
+      return;
+    }
+    
     setSubmissionStatus('loading');
     setErrorMessage('');
+
+    console.log('Form data before submission:', formData);
     
     try {
-      // Create FormData for multipart/form-data submission
-      const apiFormData = new FormData();
+      let profilePictureUrl = '';
       
-      // Append all form fields
-      apiFormData.append("firstName", formData.firstName);
-      apiFormData.append("middleName", formData.middleName);
-      apiFormData.append("lastName", formData.lastName);
-      apiFormData.append("email", formData.email);
-      apiFormData.append("password", formData.password);
-      apiFormData.append("address", formData.address);
-      apiFormData.append("description", formData.description);
-      apiFormData.append("phoneNumber", `+91${formData.phoneNumber}`);
-      apiFormData.append("dateOfBirth", formData.dateOfBirth);
-      apiFormData.append("gender", formData.gender);
-      apiFormData.append("experienceYears", formData.experienceYears);
-      apiFormData.append("panCard", formData.panCard);
-      
-      // Append profile picture if exists
+      // Upload image to Cloudinary if profile picture exists
       if (formData.profilePicture) {
-        apiFormData.append("profilePicture", formData.profilePicture);
+        try {
+          profilePictureUrl = await uploadImageToCloudinary(formData.profilePicture);
+          console.log('Image uploaded successfully:', profilePictureUrl);
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          setErrorMessage('Failed to upload profile picture. Please try again.');
+          setSubmissionStatus('error');
+          return;
+        }
       }
+      
+      // Format phone number with country code
+      const formattedPhoneNumber = formatPhoneNumber(formData.phoneNumber);
+      console.log('Formatted phone number:', formattedPhoneNumber);
+      
+      // Create JSON data for API submission (no FormData needed since we have the URL)
+      const apiData = {
+        firstName: formData.firstName,
+        middleName: formData.middleName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        address: formData.address,
+        description: formData.description,
+        phoneNumber: formattedPhoneNumber, // Use the formatted phone number
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        experienceYears: formData.experienceYears,
+        panCard: formData.panCard,
+        profilePictureUrl: profilePictureUrl, // Send the URL instead of file
+      };
+      
+      console.log('API data being sent:', apiData);
       
       // Make API call to your backend
       const response = await fetch('http://localhost:5000/api/v1/workers', {
         method: 'POST',
-        body: apiFormData,
-        // Don't set Content-Type header - browser will set it automatically for FormData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
       });
       
       if (response.ok) {
@@ -169,7 +284,11 @@ export default function WorkerOnboardingPage() {
         setSubmissionStatus('success');
         
         // Store in localStorage as backup
-        localStorage.setItem(`workerProfile_${user.email}`, JSON.stringify(formData));
+        localStorage.setItem(`workerProfile_${user.email}`, JSON.stringify({
+          ...formData,
+          phoneNumber: formattedPhoneNumber, // Store formatted number
+          profilePictureUrl: profilePictureUrl
+        }));
         
         setTimeout(() => router.push('/worker/dashboard'), 1500);
       } else {
