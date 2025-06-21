@@ -127,6 +127,37 @@ const SERVICE_DETAILS: Record<string, ServiceDetails> = {
   'Water Quality Test': { name: 'Water Quality Test', description: 'Water quality test', price: 199, duration: '30 min', icon: '🧪', category: 'Water Purifier Services' },
 };
 
+const parseDurationToMinutes = (duration: string): number => {
+  const durationLower = duration.toLowerCase();
+  const parts = durationLower.split(' ');
+
+  if (parts.length < 2) {
+    return 60; // Default if format is unexpected
+  }
+
+  try {
+    const valuePart = parts[0];
+    const unitPart = parts[1];
+    const value = parseInt(valuePart.split('-')[0], 10);
+
+    if (isNaN(value)) {
+      return 60;
+    }
+
+    if (unitPart.startsWith('hour')) {
+      return value * 60;
+    }
+    if (unitPart.startsWith('min')) {
+      return value;
+    }
+  } catch (e) {
+    console.error('Could not parse duration:', duration);
+  }
+
+  return 60; // Default to 60 minutes
+};
+
+
 const ServiceBookingPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -169,15 +200,67 @@ const ServiceBookingPage: React.FC = () => {
       } catch (err) {
         alert('Sign-in failed. Please try again.');
       }
+      return; // Return after signIn prompt, user will have to click again
+    }
+
+    if (!('geolocation' in navigator)) {
+      alert('Geolocation is not supported by your browser.');
       return;
     }
-    if (selectedPaymentMethod) {
-      setIsBookingConfirmed(true);
-      // Here you would typically make an API call to book the service
-      setTimeout(() => {
-        router.push('/mapping');
-      }, 2000);
-    }
+
+    // Get user's location
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        if (selectedPaymentMethod) {
+          // TODO: Verify user object structure and that user.id is the correct internal ID.
+          const jobData = {
+            userId: user.id,
+            description: `${currentService.name}: ${currentService.description}`,
+            location: "User's approximate location", // Placeholder, can be improved with reverse geocoding
+            lat: latitude,
+            lng: longitude,
+            bookedFor: new Date().toISOString(),
+            durationMinutes: parseDurationToMinutes(currentService.duration),
+          };
+
+          try {
+            const response = await fetch('http://localhost:5000/api/v1/jobs', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(jobData),
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              console.log('Booking successful:', result);
+              setIsBookingConfirmed(true);
+              router.push('/mapping');
+            } else {
+              const errorResult = await response.json();
+              console.error('Booking failed:', errorResult);
+              alert(
+                `Booking failed: ${errorResult.message || 'Please try again.'}`
+              );
+            }
+          } catch (error) {
+            console.error('Error during booking:', error);
+            alert(
+              'An error occurred while booking. Please check the console and try again.'
+            );
+          }
+        }
+      },
+      (error) => {
+        console.error('Error getting location: ', error);
+        alert(
+          'Unable to retrieve your location. Please enable location services and try again.'
+        );
+      }
+    );
   };
 
   const handleApplyCoupon = () => {
