@@ -393,7 +393,7 @@ export default function WorkerDashboardPage() {
   };
 
   const isJobIncoming = jobStatus === "incoming" && jobRequest;
-  const isJobAccepted = jobStatus === "accepted" && jobRequest;
+  const isJobAcceptedWorker = jobStatus === "accepted" && jobRequest;
 
   // Start location tracking for accepted job
   const startLocationTracking = () => {
