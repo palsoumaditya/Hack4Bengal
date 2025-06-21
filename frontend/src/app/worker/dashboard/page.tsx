@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import styles from "./dashboard.module.css";
 import { useUser } from "@civic/auth/react";
 import { useJobTracking } from "@/lib/jobTracking";
+import { PageLoadAnimation, PulsingDots } from "@/components/LoadingAnimations";
 import "leaflet/dist/leaflet.css";
 import {
   FiUser,
