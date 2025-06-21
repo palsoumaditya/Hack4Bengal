@@ -19,8 +19,11 @@ const Sidebar = () => {
   const pathname = usePathname();
 
   return (
-    <motion.aside className={styles.sidebar}>
-      <h2><Shield />Admin Panel</h2>
+    <motion.aside className={`${styles.sidebar} mt-14`} >
+      <div className='flex items-center p-5'>
+      <Shield />
+      <p className='text-xl font-bold'>Admin Panel</p>
+      </div>
       <nav className={styles.nav}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;
