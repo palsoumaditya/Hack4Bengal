@@ -133,14 +133,52 @@ export const specializationSchema = z.object({
 
   workerId: z.string({ message: "Worker ID is required" }),
 
-  category: z
-    .string({ message: "Category is required" })
-    .min(1, { message: "Category cannot be empty" })
-    .max(100, { message: "Category must be at most 100 characters" }),
+  category: z.enum(
+    [
+      "plumber",
+      "electrician",
+      "carpenter",
+      "mechanic",
+      "mens_grooming",
+      "women_grooming",
+    ],
+    { message: "Category is required and must be valid" }
+  ),
 
-  subCategory: z
-    .string({ message: "Subcategory is required" })
-    .max(100, { message: "Subcategory must be at most 100 characters" }),
+  subCategory: z.enum(
+    [
+      "tape_repair",
+      "leak_fixing",
+      "pipe_installation",
+      "drain_cleaning",
+      "toilet_repair",
+      "water_repair",
+      "wood_work",
+      "furniture_assembly",
+      "road_repair",
+      "window_repair",
+      "cabinate_installation",
+      "custom_shelves",
+      "electrician",
+      "electrical_repair",
+      "wiring_installation",
+      "switch_and_socket_repair",
+      "fan_installation",
+      "light_installation",
+      "mcb_or_fuse_repair",
+      "haircut",
+      "saving",
+      "full_body_massage",
+      "facial",
+      "hair_color",
+      "body_massage",
+      "car_service",
+      "bike_service",
+      "emergency_service",
+      "tire_change",
+    ],
+    { message: "Subcategory is required and must be valid" }
+  ),
 
   createdAt: z.date({ message: "CreatedAt must be a valid date" }).optional(),
 });
@@ -161,11 +199,29 @@ export const jobSchema = z.object({
   id: z.string({ message: "Job ID is required" }),
 
   userId: z.string({ message: "User ID is required" }),
+
   workerId: z.string({ message: "Worker ID is required" }).optional(),
+
+  specializations: z.enum(
+    [
+      "plumber",
+      "electrician",
+      "carpenter",
+      "mechanic",
+      "mens_grooming",
+      "women_grooming",
+    ],
+    {
+      errorMap: () => ({
+        message: "Specializations must be one of the predefined categories",
+      }),
+    }
+  ),
 
   description: z
     .string()
     .min(10, { message: "Description must be at least 10 characters" }),
+
   location: z.string({ message: "Location is required" }),
 
   lat: z.number({ message: "Latitude is required" }),
