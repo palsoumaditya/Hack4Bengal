@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent, useRef, useEffect } from 'react';
-import styles from './onboarding.module.css'; // This path is correct if both files are in the same folder.
+import styles from './onboarding.module.css';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@civic/auth/react';
@@ -14,43 +14,25 @@ const LocationPinIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 
 // Function to format phone number with country code
 const formatPhoneNumber = (phoneNumber: string): string => {
-  // Remove any existing country code or special characters
   const cleanNumber = phoneNumber.replace(/^\+91/, '').replace(/\D/g, '');
-  
-  // Validate it's a 10-digit number
   if (cleanNumber.length !== 10) {
     throw new Error('Phone number must be exactly 10 digits');
   }
-  
-  // Add +91 country code
   return `+91${cleanNumber}`;
 };
 
-// Function to validate phone number format
 const validatePhoneNumber = (phoneNumber: string): boolean => {
   const cleanNumber = phoneNumber.replace(/^\+91/, '').replace(/\D/g, '');
   return cleanNumber.length === 10 && /^\d{10}$/.test(cleanNumber);
 };
 
-// Function to upload image to Cloudinary
 const uploadImageToCloudinary = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
   
-  // Try with upload preset first
   if (CLOUDINARY_CONFIG.uploadPreset && CLOUDINARY_CONFIG.uploadPreset !== 'ml_default') {
     formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
   }
-  
-  // Remove cloud_name from formData as it's already in the URL
-  // formData.append('cloud_name', CLOUDINARY_CONFIG.cloudName);
-
-  console.log('Uploading to Cloudinary:', {
-    url: CLOUDINARY_CONFIG.uploadUrl,
-    uploadPreset: CLOUDINARY_CONFIG.uploadPreset,
-    fileName: file.name,
-    fileSize: file.size
-  });
 
   try {
     const response = await fetch(CLOUDINARY_CONFIG.uploadUrl, {
@@ -58,40 +40,13 @@ const uploadImageToCloudinary = async (file: File): Promise<string> => {
       body: formData,
     });
 
-    console.log('Cloudinary response status:', response.status);
-    console.log('Cloudinary response headers:', response.headers);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Cloudinary error response:', errorText);
-      
-      // If upload preset fails, try without it (for testing)
-      if (response.status === 400 && errorText.includes('upload_preset')) {
-        console.log('Trying without upload preset...');
-        const fallbackFormData = new FormData();
-        fallbackFormData.append('file', file);
-        
-        const fallbackResponse = await fetch(CLOUDINARY_CONFIG.uploadUrl, {
-          method: 'POST',
-          body: fallbackFormData,
-        });
-        
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          console.log('Fallback upload successful:', fallbackData);
-          return fallbackData.secure_url;
-        } else {
-          const fallbackErrorText = await fallbackResponse.text();
-          console.error('Fallback upload failed:', fallbackErrorText);
-        }
-      }
-      
       throw new Error(`Cloudinary upload failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('Cloudinary success response:', data);
-    return data.secure_url; // Return the secure URL
+    return data.secure_url;
   } catch (error) {
     console.error('Error uploading image:', error);
     throw new Error(`Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -110,13 +65,13 @@ export default function WorkerOnboardingPage() {
     email: '',
     password: '',
     profilePicture: null as File | null,
-    profilePictureUrl: '', // New field to store the uploaded image URL
+    profilePictureUrl: '',
     address: '',
     description: '',
     phoneNumber: '',
     dateOfBirth: '',
-    gender: 'not_specified',
-    experienceYears: '0',
+    gender: 'not_specified' as 'male' | 'female' | 'not_specified',
+    experienceYears: 0,
     panCard: '',
     phoneOtp: '',
   });
@@ -135,17 +90,21 @@ export default function WorkerOnboardingPage() {
   const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Effect to auto-fill email from user profile
   useEffect(() => {
     if (user?.email) {
       setFormData(prev => ({ ...prev, email: user.email || '' }));
     }
   }, [user]);
 
-
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Convert experienceYears to number
+    if (name === 'experienceYears') {
+      setFormData(prev => ({ ...prev, [name]: parseInt(value) || 0 }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
   
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -178,7 +137,6 @@ export default function WorkerOnboardingPage() {
     }, 1500);
   };
 
-  // Function to get current location
   const handleFetchLocation = () => {
     if (!navigator.geolocation) {
       setLocationState({ loading: false, error: "Geolocation is not supported by your browser." });
@@ -191,7 +149,6 @@ export default function WorkerOnboardingPage() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          // Using a free reverse geocoding API
           const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
           const data = await response.json();
           const address = `${data.city}, ${data.principalSubdivision}, ${data.countryName}`;
@@ -202,7 +159,6 @@ export default function WorkerOnboardingPage() {
         }
       },
       () => {
-        
         setLocationState({ loading: false, error: "Unable to retrieve your location. Please grant permission." });
       }
     );
@@ -218,7 +174,6 @@ export default function WorkerOnboardingPage() {
       return;
     }
     
-    // Validate phone number before submission
     if (!validatePhoneNumber(formData.phoneNumber)) {
       setErrorMessage('Please enter a valid 10-digit phone number.');
       setSubmissionStatus('error');
@@ -228,16 +183,12 @@ export default function WorkerOnboardingPage() {
     setSubmissionStatus('loading');
     setErrorMessage('');
 
-    console.log('Form data before submission:', formData);
-    
     try {
       let profilePictureUrl = '';
       
-      // Upload image to Cloudinary if profile picture exists
       if (formData.profilePicture) {
         try {
           profilePictureUrl = await uploadImageToCloudinary(formData.profilePicture);
-          console.log('Image uploaded successfully:', profilePictureUrl);
         } catch (uploadError) {
           console.error('Image upload failed:', uploadError);
           setErrorMessage('Failed to upload profile picture. Please try again.');
@@ -246,30 +197,25 @@ export default function WorkerOnboardingPage() {
         }
       }
       
-      // Format phone number with country code
       const formattedPhoneNumber = formatPhoneNumber(formData.phoneNumber);
-      console.log('Formatted phone number:', formattedPhoneNumber);
       
-      // Create JSON data for API submission (no FormData needed since we have the URL)
+      // Prepare data according to backend schema
       const apiData = {
         firstName: formData.firstName,
-        middleName: formData.middleName,
+        middleName: formData.middleName || undefined, // Send undefined instead of empty string
         lastName: formData.lastName,
         email: formData.email,
-        password: formData.password,
+        password: formData.password || undefined, // Optional field
+        profilePicture: profilePictureUrl || undefined,
         address: formData.address,
-        description: formData.description,
-        phoneNumber: formattedPhoneNumber, // Use the formatted phone number
-        dateOfBirth: formData.dateOfBirth,
+        description: formData.description || undefined,
+        phoneNumber: formattedPhoneNumber,
+        dateOfBirth: formData.dateOfBirth, // Will be converted to Date on backend
         gender: formData.gender,
         experienceYears: formData.experienceYears,
-        panCard: formData.panCard,
-        profilePictureUrl: profilePictureUrl, // Send the URL instead of file
+        panCard: formData.panCard || undefined,
       };
       
-      console.log('API data being sent:', apiData);
-      
-      // Make API call to your backend
       const response = await fetch('http://localhost:5000/api/v1/workers', {
         method: 'POST',
         headers: {
@@ -280,20 +226,17 @@ export default function WorkerOnboardingPage() {
       
       if (response.ok) {
         const result = await response.json();
-        console.log('Successfully created worker:', result);
         setSubmissionStatus('success');
         
-        // Store in localStorage as backup
         localStorage.setItem(`workerProfile_${user.email}`, JSON.stringify({
           ...formData,
-          phoneNumber: formattedPhoneNumber, // Store formatted number
+          phoneNumber: formattedPhoneNumber,
           profilePictureUrl: profilePictureUrl
         }));
         
         setTimeout(() => router.push('/worker/dashboard'), 1500);
       } else {
         const errorResult = await response.json();
-        console.error('Submission failed:', errorResult);
         setErrorMessage(errorResult.message || 'Failed to create profile.');
         setSubmissionStatus('error');
       }
