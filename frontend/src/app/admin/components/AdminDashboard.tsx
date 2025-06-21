@@ -1,16 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  TrendingUp, 
-  DollarSign, 
-  ShoppingCart, 
-  Award, 
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  ShoppingCart,
+  Award,
   AlertTriangle,
   Calendar,
-  BarChart3
+  BarChart3,
+  LayoutDashboard,
+  FileText,
+  Settings,
+  Bell,
+  MessageSquare,
+  Shield,
 } from 'lucide-react';
+
+import styles from './AdminDashboard.module.css';
+
 import StatsCard from './StatsCard';
 import WorkerList from './WorkerList';
 import RevenueChart from './RevenueChart';
@@ -57,21 +66,93 @@ const mockData = {
   ]
 };
 
+const Sidebar = () => (
+  <aside className={styles.sidebar}>
+    <h2><Shield />Admin Panel</h2>
+    <nav className={styles.nav}>
+      <a href="#" className={styles.active}><LayoutDashboard />Dashboard</a>
+      <a href="#"><Users />Workers</a>
+      <a href="#"><FileText />Reports</a>
+      <a href="#"><MessageSquare />Complaints</a>
+      <a href="#"><Settings />Settings</a>
+    </nav>
+  </aside>
+);
+
+const MainContent = ({ data }) => (
+  <main className={styles.mainContent}>
+    <div className={styles.statsGrid}>
+      <StatsCard title="Total Workers" value={data.totalWorkers} icon={<Users />} color="blue" />
+      <StatsCard title="Avg Income" value={`$${data.avgIncome.toLocaleString()}`} icon={<TrendingUp />} color="green" />
+      <StatsCard title="Highest Income" value={`$${data.highestIncome.toLocaleString()}`} icon={<DollarSign />} color="yellow" />
+      <StatsCard title="Monthly Orders" value={data.monthlyOrders} icon={<ShoppingCart />} color="purple" />
+    </div>
+
+    <div className={styles.chartGrid}>
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Revenue Overview</h2>
+          <span className="text-2xl font-bold text-green-600">${data.totalRevenue.toLocaleString()}</span>
+        </div>
+        <RevenueChart data={data.monthlyRevenue} />
+      </div>
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Top Workers</h2>
+            <Award className="h-5 w-5 text-yellow-500" />
+        </div>
+        <TopWorkersChart data={data.topWorkers} />
+      </div>
+    </div>
+    
+    <div className={styles.chartGrid}>
+        <div className={styles.card}>
+            <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>Monthly Orders</h2>
+                <Calendar className="h-5 w-5 text-blue-500" />
+            </div>
+            <MonthlyOrdersChart data={data.monthlyOrdersData} />
+        </div>
+        <div className={styles.card}>
+            <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>Discounts</h2>
+                <BarChart3 className="h-5 w-5 text-red-500" />
+            </div>
+            <DiscountStats totalDiscounts={data.totalDiscounts} />
+        </div>
+    </div>
+
+    <div className={`${styles.card} ${styles.tableContainer} mt-8`}>
+        <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Worker Details</h2>
+            <Users className="h-5 w-5 text-blue-500"/>
+        </div>
+      <WorkerList workers={data.topWorkers} />
+    </div>
+
+    <div className={`${styles.card} ${styles.tableContainer} mt-8`}>
+        <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Recent Complaints</h2>
+            <AlertTriangle className="h-5 w-5 text-red-500"/>
+        </div>
+      <ComplaintsList complaints={data.complaints} />
+    </div>
+  </main>
+);
+
 export default function AdminDashboard() {
   const [data, setData] = useState(mockData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: Replace with actual API calls
     setLoading(true);
     setError(null);
-    
     try {
       setTimeout(() => {
         setData(mockData);
         setLoading(false);
-      }, 1000);
+      }, 500);
     } catch (err) {
       setError('Failed to load dashboard data');
       setLoading(false);
@@ -80,134 +161,35 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-24 w-24 border-t-4 border-b-4 border-blue-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
+      <div className="flex items-center justify-center min-h-screen bg-red-50">
+        <div className="text-center p-8 border border-red-200 rounded-lg shadow-md">
           <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-500" />
-          <p className="text-red-600">{error}</p>
+          <p className="text-red-700 font-semibold text-lg">{error}</p>
         </div>
       </div>
     );
   }
 
-  // Validate that data exists
   if (!data) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-gray-600">No data available</p>
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <p className="text-gray-500 text-xl">No data available to display.</p>
         </div>
-      </div>
-    );
+    )
   }
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600">Monitor your workforce, revenue, and business metrics</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-          title="Total Workers"
-          value={data.totalWorkers}
-          icon={<Users className="h-6 w-6" />}
-          color="blue"
-        />
-        <StatsCard
-          title="Avg Income"
-          value={`$${data.avgIncome.toLocaleString()}`}
-          icon={<TrendingUp className="h-6 w-6" />}
-          color="green"
-        />
-        <StatsCard
-          title="Highest Income"
-          value={`$${data.highestIncome.toLocaleString()}`}
-          icon={<DollarSign className="h-6 w-6" />}
-          color="yellow"
-        />
-        <StatsCard
-          title="Monthly Orders"
-          value={data.monthlyOrders}
-          icon={<ShoppingCart className="h-6 w-6" />}
-          color="purple"
-        />
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Revenue Overview</h2>
-            <div className="text-2xl font-bold text-green-600">
-              ${data.totalRevenue.toLocaleString()}
-            </div>
-          </div>
-          <RevenueChart data={data.monthlyRevenue} />
-        </div>
-
-        {/* Top Workers */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Top Workers</h2>
-            <Award className="h-5 w-5 text-yellow-500" />
-          </div>
-          <TopWorkersChart data={data.topWorkers} />
-        </div>
-      </div>
-
-      {/* Second Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Monthly Orders Chart */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Monthly Orders</h2>
-            <Calendar className="h-5 w-5 text-blue-500" />
-          </div>
-          <MonthlyOrdersChart data={data.monthlyOrdersData} />
-        </div>
-
-        {/* Discount Stats */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Discounts Given</h2>
-            <BarChart3 className="h-5 w-5 text-red-500" />
-          </div>
-          <DiscountStats totalDiscounts={data.totalDiscounts} />
-        </div>
-      </div>
-
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Worker List */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Worker Details</h2>
-            <Users className="h-5 w-5 text-blue-500" />
-          </div>
-          <WorkerList workers={data.topWorkers} />
-        </div>
-
-        {/* Complaints */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Complaints</h2>
-            <AlertTriangle className="h-5 w-5 text-red-500" />
-          </div>
-          <ComplaintsList complaints={data.complaints} />
-        </div>
-      </div>
+    <div className={styles.dashboard}>
+      <Sidebar />
+      <MainContent data={data} />
     </div>
   );
 } 
