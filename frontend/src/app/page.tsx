@@ -12,6 +12,18 @@ export default function Home() {
   return (
     <div className="w-full max-w-4xl mx-auto">
       <ServiceSelection />
+      {/* New Section: Car Struck Banner */}
+      <div className="w-full flex flex-col items-center justify-center pt-8 pb-8 px-2 sm:px-4 max-w-4xl mx-auto">
+        <div className="w-full p-2 sm:p-6 bg-yellow-400 rounded-2xl border border-black">
+          <span className="text-white text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight mb-6 block">
+            you car struck in the<br className="hidden sm:block" />
+            middle of road like this
+          </span>
+          <button className="mt-6 px-6 py-3 bg-black rounded-lg text-white font-semibold text-base sm:text-lg shadow-md hover:bg-gray-900 transition-colors duration-200">
+            <span className="tracking-wider">Get help now</span>
+          </button>
+        </div>
+      </div>
       <FAQ />
       <WaitingTime />
       <FloatingButton onClick={() => setIsChatOpen(true)} />
@@ -19,3 +31,6 @@ export default function Home() {
     </div>
   );
 }
+
+
+

@@ -16,6 +16,7 @@ import {
   formatAddress,
 } from "@/lib/addressService";
 import { ModernInput, ModernButton } from "@/components/ModernUI";
+import mockWorkers from './mockWorkers';
 
 interface ServiceDetails {
   name: string;
@@ -568,6 +569,8 @@ const ServiceBookingPage: React.FC = () => {
   const [nearbyWorkerCount, setNearbyWorkerCount] = useState<number | null>(
     null
   );
+  const [assignedWorker, setAssignedWorker] = useState<any>(null);
+  const [showWorkerModal, setShowWorkerModal] = useState(false);
 
   // Loading states for cool animations
   const [bookingStage, setBookingStage] = useState<
@@ -683,75 +686,17 @@ const ServiceBookingPage: React.FC = () => {
       setBookingStage("initiating");
 
       try {
-        setBookingStage("creating-user");
-        console.log(
-          "👤 [BOOKING] Getting/creating user for email:",
-          user.email
-        );
-        // Extract first and last name from user object
-        let firstName = "User";
-        let lastName = "Name";
-        if (user.given_name && user.family_name) {
-          firstName = user.given_name;
-          lastName = user.family_name;
-        } else if (user.name) {
-          const parts = user.name.split(" ");
-          firstName = parts[0];
-          lastName = parts.slice(1).join(" ") || "Name";
-        }
-        const userData = await getOrCreateUserByEmail(user.email, {
-          firstName,
-          lastName,
-          phoneNumber: "919999999999",
-        });
-        console.log("✅ [BOOKING] User data obtained:", userData);
-        setUserDataForBooking(userData);
-
-        setBookingStage("getting-location");
-        console.log("📍 [BOOKING] Getting current location...");
-        const position = await new Promise<GeolocationPosition>(
-          (resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-          }
-        );
-        const { latitude, longitude } = position.coords;
-        console.log("✅ [BOOKING] Location obtained:", { latitude, longitude });
-
-        // Create job data that matches the backend schema
-        const jobData = {
-          userId: userData.id,
-          description: `${currentService.name} - ${currentService.description}`,
-          location: address || "Your current location",
-          lat: latitude,
-          lng: longitude,
-          bookedFor: new Date(Date.now() + 3600000).toISOString(),
-          durationMinutes: parseDurationToMinutes(currentService.duration),
-          status: "pending" as const,
-          // Additional metadata for tracking (not part of core schema but useful)
-          serviceName: currentService.name,
-          serviceCategory: currentService.category,
-          servicePrice: currentService.price,
-          serviceDuration: currentService.duration,
-          serviceIcon: currentService.icon,
-          paymentMethod: selectedPaymentMethod,
-          finalPrice: finalPrice,
-          discountApplied: discount,
-          couponCode: couponApplied ? coupon : null,
-        };
-        console.log("📝 [BOOKING] Job data prepared:", jobData);
-        setJobDataForBooking(jobData);
-
-        // Show a simple alert('Booking successful!') and reset the form or page state instead of redirecting to tracking page.
-        alert("Booking successful!");
-        setIsBookingConfirmed(false);
-        setAddress("");
-        setJobDataForBooking(null);
-        setUserDataForBooking(null);
-        setBookingStage("idle");
+        // Simulate booking and assign a random worker
+        const randomWorker = mockWorkers[Math.floor(Math.random() * mockWorkers.length)];
+        setTimeout(() => {
+          setIsBookingConfirmed(false);
+          setBookingStage("idle");
+          setAddress("");
+          router.push(`/booking/worker-assigned?id=${randomWorker.id}`);
+        }, 1500);
       } catch (error) {
-        console.error("❌ [BOOKING] Error during booking setup:", error);
-        alert("Failed to set up booking. Please try again.");
         setIsBookingConfirmed(false);
+        setBookingStage("idle");
       }
     }
   }, [
@@ -843,15 +788,6 @@ const ServiceBookingPage: React.FC = () => {
             </button>
           </div>
         </div>
-
-        {/* Booking Progress Overlay */}
-        {isBookingConfirmed && bookingStage !== "idle" && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
-              <BookingProgress stage={bookingStage} />
-            </div>
-          </div>
-        )}
 
         <div className="flex flex-col gap-8 md:flex-row">
           {/* Left Column - Service Details */}
@@ -1099,7 +1035,7 @@ const ServiceBookingPage: React.FC = () => {
                 loading={isBookingConfirmed}
                 className="w-full py-4 mt-2"
               >
-                {isBookingConfirmed ? "Booking..." : "Book Now"}
+                {isBookingConfirmed ? "Looking for worker near you..." : "Book Now"}
               </ModernButton>
             </div>
           </div>
