@@ -1,32 +1,28 @@
+'use client'
+
 import React from 'react';
+import styles from './AdminDashboard.module.css'; // Use the main dashboard styles
 
 interface StatsCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
-  color: 'blue' | 'green' | 'yellow' | 'purple' | 'red';
+  color: 'blue' | 'green' | 'yellow' | 'purple';
 }
 
-const colorClasses = {
-  blue: 'bg-blue-50 text-blue-600 border-blue-200',
-  green: 'bg-green-50 text-green-600 border-green-200',
-  yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-  purple: 'bg-purple-50 text-purple-600 border-purple-200',
-  red: 'bg-red-50 text-red-600 border-red-200'
-};
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, color }) => {
+  const cardStyle = `${styles.card} flex items-center p-4`;
+  const iconStyle = `${styles.cardIcon} ${styles[color]} mr-4`;
 
-export default function StatsCard({ title, value, icon, color }: StatsCardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-        </div>
-        <div className={`p-3 rounded-full border ${colorClasses[color]}`}>
-          {icon}
-        </div>
+    <div className={cardStyle}>
+      <div className={iconStyle}>{icon}</div>
+      <div>
+        <p className="text-sm text-gray-500 font-medium">{title}</p>
+        <p className="text-2xl font-bold text-gray-800">{value}</p>
       </div>
     </div>
   );
-} 
+};
+
+export default StatsCard; 
