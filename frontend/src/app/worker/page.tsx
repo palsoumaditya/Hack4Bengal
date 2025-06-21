@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, SignInButton } from '@civic/auth/react';
+import { useUser } from '@civic/auth/react';
 
 import styles from './worker.module.css';
 
@@ -70,7 +70,7 @@ const ThemedLoadingAnimation = ({ loadingText, onAnimationComplete }: ThemedLoad
 
 export default function WorkerGatewayPage() {
     const router = useRouter();
-    const { user, isInitializing } = useUser();
+    const { user, isLoading } = useUser();
 
     const [hasIntroPlayed, setHasIntroPlayed] = useState(
         () => typeof window !== 'undefined' && sessionStorage.getItem('introPlayed') === 'true'
@@ -110,7 +110,7 @@ export default function WorkerGatewayPage() {
         return <WorkerIntroAnimation />;
     }
 
-    if (isInitializing || user) {
+    if (isLoading || user) {
         const text = user ? "Launching " : "";
         // Using the new ThemedLoadingAnimation component
         return <ThemedLoadingAnimation loadingText={text} onAnimationComplete={handleRedirect} />;
@@ -125,7 +125,12 @@ export default function WorkerGatewayPage() {
                     Sign in or create an account to manage your profile and jobs.
                 </p>
                 <div className={styles.buttonContainer}>
-                    <SignInButton signInMethods={['google', 'apple']} />
+                    <button 
+                        onClick={() => window.location.href = '/'}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                        Sign In
+                    </button>
                 </div>
             </div>
         </div>
