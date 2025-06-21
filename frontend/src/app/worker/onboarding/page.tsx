@@ -60,8 +60,8 @@ const formatPhoneNumber = (phoneNumber: string): string => {
   if (cleanNumber.length !== 10) {
     throw new Error("Phone number must be exactly 10 digits");
   }
-  // Add +91 country code
-  return `+91${cleanNumber}`;
+  // Add 091 country code to make it exactly 13 digits
+  return `091${cleanNumber}`;
 };
 
 const validatePhoneNumber = (phoneNumber: string): boolean => {
@@ -155,7 +155,7 @@ export default function WorkerOnboardingPage() {
     password: "",
     profilePicture: null as File | null,
     profilePictureUrl: "", // New field to store the uploaded image URL
-    location: "",
+    address: "",
     description: "",
     phoneNumber: "",
     dateOfBirth: "",
@@ -321,21 +321,20 @@ export default function WorkerOnboardingPage() {
       // Create JSON data for API submission (no FormData needed since we have the URL)
       const apiData = {
         firstName: formData.firstName,
-        middleName: formData.middleName || undefined, // Send undefined instead of empty string
+        middleName: formData.middleName || undefined,
         lastName: formData.lastName,
         email: formData.email,
-        password: formData.password || undefined, // Optional field
+        password: formData.password || undefined,
         profilePicture: profilePictureUrl || undefined,
-        location: formData.location,
-
+        address: formData.address,
         description: formData.description || undefined,
         phoneNumber: formattedPhoneNumber,
-        dateOfBirth: formData.dateOfBirth, // Will be converted to Date on backend
+        dateOfBirth: formData.dateOfBirth,
         gender: formData.gender,
         experienceYears: parseInt(formData.experienceYears || "0", 10),
-
         panCard: formData.panCard || undefined,
       };
+      
 
       console.log("API data being sent:", apiData);
 
@@ -483,7 +482,6 @@ export default function WorkerOnboardingPage() {
                     <option value="not_specified">Do not specify</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
-                    <option value="other">Other</option>
                   </select>
                 </div>
               </div>
@@ -538,6 +536,7 @@ export default function WorkerOnboardingPage() {
                       disabled={
                         verification.phoneLoading || !formData.phoneNumber
                       }
+                      aria-label={verification.phoneOtpSent ? "Resend OTP" : "Send OTP"}
                     >
                       {verification.phoneOtpSent ? "Resend OTP" : "Send OTP"}
                     </button>
@@ -561,6 +560,7 @@ export default function WorkerOnboardingPage() {
                       className={styles.verifyButton}
                       onClick={handleVerifyOtp}
                       disabled={verification.phoneLoading}
+                      aria-label="Verify OTP"
                     >
                       {verification.phoneLoading ? (
                         <div className={styles.spinner}></div>
@@ -585,7 +585,7 @@ export default function WorkerOnboardingPage() {
                   <textarea
                     id="address"
                     name="address"
-                    value={formData.location}
+                    value={formData.address}
                     onChange={handleInputChange}
                     rows={3}
                     className={`${styles.nonResizable} ${styles.addressTextarea}`}
@@ -689,6 +689,7 @@ export default function WorkerOnboardingPage() {
                       type="button"
                       onClick={handleRemoveImage}
                       className={styles.removePicButton}
+                      aria-label="Remove profile picture"
                     >
                       <CrossIcon />
                     </button>
@@ -799,6 +800,7 @@ export default function WorkerOnboardingPage() {
           </div>
         </div>
       )}
-    </div>
-  );
+    </div>
+  );
 }
+

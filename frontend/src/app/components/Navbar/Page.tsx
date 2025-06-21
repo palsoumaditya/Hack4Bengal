@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { UserButton, useUser } from "@civic/auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useCart } from '../../booking/cart/cartContext';
 
@@ -117,8 +117,12 @@ const IconX = ({ size = 24, className = "" }) => (
 
 // Main Navbar Component
 export default function App() {
-  // Removed usePathname as it's a Next.js specific hook.
-  // The logic to hide the navbar is removed for this standalone component.
+  const pathname = usePathname();
+  
+  // Hide navbar on /worker route and all worker sub-routes (onboarding, dashboard, etc.)
+  if (pathname === '/worker' || pathname.startsWith('/worker/')) {
+    return null;
+  }
 
   // --- STATE MANAGEMENT ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -261,7 +265,11 @@ export default function App() {
               </div>
             </div>
             <div className="relative">
-              <button className="p-2 rounded-full hover:bg-transparent transition-colors" onClick={() => router.push('/booking/cart')}>
+              <button 
+                className="p-2 rounded-full hover:bg-transparent transition-colors" 
+                onClick={() => router.push('/booking/cart')}
+                aria-label="Shopping Cart"
+              >
                 <IconShoppingCart size={24} className="text-gray-700" />
               </button>
               {cart.length > 0 && (
