@@ -44,12 +44,13 @@ export default function WorkerOnboardingPage() {
     error: '',
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [submissionStatus, setSubmissionStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Effect to auto-fill email from user profile
   useEffect(() => {
     if (user?.email) {
-      setFormData(prev => ({ ...prev, email: user.email }));
+      setFormData(prev => ({ ...prev, email: user.email || '' }));
     }
   }, [user]);
 
@@ -122,7 +123,7 @@ export default function WorkerOnboardingPage() {
   const nextStep = () => setCurrentStep(prev => prev + 1);
   const prevStep = () => setCurrentStep(prev => prev - 1);
   
-  const handleSubmit = (e: FormEvent) => { 
+  const handleSubmit = async (e: FormEvent) => { 
     e.preventDefault(); 
     if (!user) {
       alert("You must be logged in to submit a profile.");
@@ -130,13 +131,58 @@ export default function WorkerOnboardingPage() {
     }
     
     setSubmissionStatus('loading');
+    setErrorMessage('');
     
-    setTimeout(() => {
-      console.log("Submitting data:", formData);
-      localStorage.setItem(`workerProfile_${user.did}`, JSON.stringify(formData));
-      setSubmissionStatus('success');
-      setTimeout(() => router.push('/worker/dashboard'), 1500); 
-    }, 2000); 
+    try {
+      // Create FormData for multipart/form-data submission
+      const apiFormData = new FormData();
+      
+      // Append all form fields
+      apiFormData.append("firstName", formData.firstName);
+      apiFormData.append("middleName", formData.middleName);
+      apiFormData.append("lastName", formData.lastName);
+      apiFormData.append("email", formData.email);
+      apiFormData.append("password", formData.password);
+      apiFormData.append("address", formData.address);
+      apiFormData.append("description", formData.description);
+      apiFormData.append("phoneNumber", `+91${formData.phoneNumber}`);
+      apiFormData.append("dateOfBirth", formData.dateOfBirth);
+      apiFormData.append("gender", formData.gender);
+      apiFormData.append("experienceYears", formData.experienceYears);
+      apiFormData.append("panCard", formData.panCard);
+      
+      // Append profile picture if exists
+      if (formData.profilePicture) {
+        apiFormData.append("profilePicture", formData.profilePicture);
+      }
+      
+      // Make API call to your backend
+      const response = await fetch('http://localhost:5000/api/v1/workers', {
+        method: 'POST',
+        body: apiFormData,
+        // Don't set Content-Type header - browser will set it automatically for FormData
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Successfully created worker:', result);
+        setSubmissionStatus('success');
+        
+        // Store in localStorage as backup
+        localStorage.setItem(`workerProfile_${user.email}`, JSON.stringify(formData));
+        
+        setTimeout(() => router.push('/worker/dashboard'), 1500);
+      } else {
+        const errorResult = await response.json();
+        console.error('Submission failed:', errorResult);
+        setErrorMessage(errorResult.message || 'Failed to create profile.');
+        setSubmissionStatus('error');
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      setErrorMessage('Network error occurred. Please try again.');
+      setSubmissionStatus('error');
+    }
   };
 
   const RequiredStar = () => <span className={styles.requiredStar}>*</span>;
@@ -218,7 +264,7 @@ export default function WorkerOnboardingPage() {
           <div className={styles.formNavigation}>
               {currentStep > 1 && (<button type="button" className={styles.backButton} onClick={prevStep}>Back</button>)}
               {currentStep < 3 && (<button type="button" className={styles.nextButton} onClick={nextStep}>Next</button>)}
-              {currentStep === 3 && (<button type="submit" className={styles.submitButton}>Submit Profile</button>)}
+              {currentStep === 3 && (<button type="submit" className={styles.submitButton} disabled={submissionStatus === 'loading'}>Submit Profile</button>)}
           </div>
         </form>
       </div>
@@ -228,74 +274,20 @@ export default function WorkerOnboardingPage() {
           <div className={styles.submissionContent}>
             {submissionStatus === 'loading' && (<><div className={styles.spinner}></div><p>Submitting your profile...</p></>)}
             {submissionStatus === 'success' && (<div className={styles.successAnimation}><svg className={styles.checkmark} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle className={styles.checkmarkCircle} cx="26" cy="26" r="25" fill="none"/><path className={styles.checkmarkCheck} fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg><p>Profile Created Successfully!</p></div>)}
+            {submissionStatus === 'error' && (
+              <div className={styles.errorAnimation}>
+                <svg className={styles.errorIcon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="15" y1="9" x2="9" y2="15"/>
+                  <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+                <p>Error: {errorMessage}</p>
+                <button onClick={() => setSubmissionStatus('idle')} className={styles.retryButton}>Try Again</button>
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
   );
 }
-
-
- /*const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!user) {
-      alert("You must be logged in to submit a profile.");
-      return;
-    }
-
-    setSubmissionStatus('loading');
-
-    // 1. Create a FormData object to hold all the data
-    const apiFormData = new FormData();
-
-    // 2. Append all the fields from your state.
-    // The key (e.g., "firstName") MUST match what your backend API expects.
-    apiFormData.append("firstName", formData.firstName);
-    apiFormData.append("middleName", formData.middleName);
-    apiFormData.append("lastName", formData.lastName);
-    apiFormData.append("email", formData.email);
-    apiFormData.append("password", formData.password);
-    apiFormData.append("address", formData.address);
-    apiFormData.append("description", formData.description);
-    // Combine country code with the 10-digit number
-    apiFormData.append("phoneNumber", `+91${formData.phoneNumber}`);
-    apiFormData.append("dateOfBirth", formData.dateOfBirth);
-    apiFormData.append("gender", formData.gender);
-    apiFormData.append("experienceYears", formData.experienceYears);
-    apiFormData.append("panCard", formData.panCard);
-
-    // 3. Append the profile picture file, if it exists
-    if (formData.profilePicture) {
-      apiFormData.append("profilePicture", formData.profilePicture);
-    }
-
-    try {
-      // 4. Make the API call using fetch
-      const response = await fetch('/api/workers', { // <-- This is your backend API endpoint
-        method: 'POST',
-        body: apiFormData,
-        // IMPORTANT: DO NOT set the 'Content-Type' header yourself.
-        // The browser will automatically set it to 'multipart/form-data'
-        // with the correct boundary when you use FormData.
-      });
-
-      // 5. Handle the response
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Successfully created worker:', result);
-        setSubmissionStatus('success');
-        setTimeout(() => router.push('/worker/dashboard'), 1500);
-      } else {
-        // Handle server-side errors (e.g., validation failed)
-        const errorResult = await response.json();
-        console.error('Submission failed:', errorResult);
-        alert(`Error: ${errorResult.message || 'Failed to create profile.'}`);
-        setSubmissionStatus('idle'); // Reset the form to allow another attempt
-      }
-    } catch (error) {
-      // Handle network errors (e.g., server is down)
-      console.error('An error occurred during submission:', error);
-      alert('A network error occurred. Please try again.');
-      setSubmissionStatus('idle');
-    }
-  }; */

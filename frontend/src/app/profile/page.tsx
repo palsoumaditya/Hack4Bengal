@@ -111,7 +111,7 @@ export default function ProfilePage() {
         autoLocation: profile.autoLocation,
       };
       console.log("Request body:", requestBody);
-      const response = await fetch('http://localhost:5000/api/v1/users/', {
+      const response = await fetch('http://localhost:5000/api/v1/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
