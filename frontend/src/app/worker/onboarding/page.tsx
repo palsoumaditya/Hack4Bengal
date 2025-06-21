@@ -362,7 +362,9 @@ export default function WorkerOnboardingPage() {
           })
         );
 
-        setTimeout(() => router.push("/worker/dashboard"), 1500);
+        // Redirect to specialization page with worker ID
+        const workerId = result.data.id;
+        setTimeout(() => router.push(`/worker/onboarding/specialize?workerId=${workerId}`), 1500);
       } else {
         const errorResult = await response.json();
         console.error("Submission failed:", errorResult);
@@ -411,6 +413,15 @@ export default function WorkerOnboardingPage() {
           >
             <div className={styles.stepNumber}>3</div>
             <div className={styles.stepLabel}>Profile Photo</div>
+          </div>
+          <div className={styles.stepConnector}></div>
+          <div
+            className={`${styles.step} ${
+              currentStep >= 4 ? styles.active : ""
+            }`}
+          >
+            <div className={styles.stepNumber}>4</div>
+            <div className={styles.stepLabel}>Specializations</div>
           </div>
         </div>
         <form onSubmit={handleSubmit}>
@@ -735,7 +746,7 @@ export default function WorkerOnboardingPage() {
                 className={styles.submitButton}
                 disabled={submissionStatus === "loading"}
               >
-                Submit Profile
+                {submissionStatus === "loading" ? "Submitting..." : "Submit & Continue to Specializations"}
               </button>
             )}
           </div>
@@ -772,6 +783,9 @@ export default function WorkerOnboardingPage() {
                   />
                 </svg>
                 <p>Profile Created Successfully!</p>
+                <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', color: '#666' }}>
+                  Redirecting to specializations...
+                </p>
               </div>
             )}
             {submissionStatus === "error" && (

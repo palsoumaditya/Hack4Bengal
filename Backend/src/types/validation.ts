@@ -129,7 +129,7 @@ export const workerSchema = z.object({
 });
 
 export const specializationSchema = z.object({
-  id: z.string({ message: "Specialization ID is required" }),
+  id: z.string({ message: "Specialization ID is required" }).optional(),
 
   workerId: z.string({ message: "Worker ID is required" }),
 
@@ -184,7 +184,7 @@ export const specializationSchema = z.object({
 });
 
 export const liveLocationSchema = z.object({
-  id: z.string({ message: "Location ID is required" }),
+  id: z.string({ message: "Location ID is required" }).optional(),
 
   workerId: z.string({ message: "Worker ID is required" }),
 
@@ -196,7 +196,7 @@ export const liveLocationSchema = z.object({
 });
 
 export const jobSchema = z.object({
-  id: z.string({ message: "Job ID is required" }),
+  id: z.string({ message: "Job ID is required" }).optional(),
 
   userId: z.string({ message: "User ID is required" }),
 
@@ -253,7 +253,7 @@ export const jobSchema = z.object({
 });
 
 export const transactionSchema = z.object({
-  id: z.string({ message: "Transaction ID is required" }),
+  id: z.string({ message: "Transaction ID is required" }).optional(),
 
   jobId: z.string({ message: "Job ID is required" }),
 
@@ -298,7 +298,7 @@ export const transactionSchema = z.object({
 });
 
 export const reviewSchema = z.object({
-  id: z.string({ message: "Review ID is required" }),
+  id: z.string({ message: "Review ID is required" }).optional(),
 
   jobId: z.string({ message: "Job ID is required" }),
 
