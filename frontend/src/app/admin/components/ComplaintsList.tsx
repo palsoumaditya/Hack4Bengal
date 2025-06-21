@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
+import { AlertOctagon, CheckCircle, Clock, User } from 'lucide-react';
 
 type Complaint = {
   id: number;
@@ -8,49 +10,59 @@ type Complaint = {
   issue: string;
   status: 'Resolved' | 'Pending' | 'Under Review';
   date: string;
+  priority: 'High' | 'Medium' | 'Low';
 };
 
 interface ComplaintsListProps {
   complaints: Complaint[];
 }
 
-const statusColorMap = {
-  Resolved: 'bg-green-100 text-green-800',
-  Pending: 'bg-yellow-100 text-yellow-800',
-  'Under Review': 'bg-blue-100 text-blue-800',
+const statusConfig = {
+    Resolved: { icon: CheckCircle, color: 'text-green-500', label: 'Resolved' },
+    Pending: { icon: Clock, color: 'text-yellow-500', label: 'Pending' },
+    'Under Review': { icon: AlertOctagon, color: 'text-blue-500', label: 'Under Review' },
+};
+  
+const priorityConfig = {
+    High: 'border-l-red-500',
+    Medium: 'border-l-yellow-400',
+    Low: 'border-l-gray-300',
 };
 
 const ComplaintsList: React.FC<ComplaintsListProps> = ({ complaints }) => {
   if (!complaints || complaints.length === 0) {
-    return <p className="text-gray-500 text-center py-4">No complaints recorded.</p>;
+    return <p className="text-gray-500 text-center py-8">No complaints recorded.</p>;
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-sm text-left text-gray-500">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3">Worker Name</th>
-            <th scope="col" className="px-6 py-3">Issue</th>
-            <th scope="col" className="px-6 py-3">Date</th>
-            <th scope="col" className="px-6 py-3">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {complaints.map((complaint) => (
-            <tr key={complaint.id} className="bg-white border-b hover:bg-gray-50">
-              <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">{complaint.workerName}</td>
-              <td className="px-6 py-4">{complaint.issue}</td>
-              <td className="px-6 py-4">{complaint.date}</td>
-              <td className="px-6 py-4">
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusColorMap[complaint.status]}`}>
-                  {complaint.status}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-3 -mx-4 px-4 h-full overflow-y-auto">
+      {complaints.map((complaint, index) => {
+        const StatusIcon = statusConfig[complaint.status].icon;
+        const statusColor = statusConfig[complaint.status].color;
+        
+        return (
+            <motion.div
+                key={complaint.id}
+                className={`flex items-start space-x-4 p-4 rounded-lg bg-gray-50 border-l-4 ${priorityConfig[complaint.priority]}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+            >
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${statusColor} bg-opacity-10`}>
+                    <StatusIcon className={`w-5 h-5 ${statusColor}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center">
+                        <p className="text-sm font-semibold text-gray-800 truncate">{complaint.issue}</p>
+                        <p className="text-xs text-gray-500">{complaint.date}</p>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1">
+                        Assigned to: <span className="font-medium">{complaint.workerName}</span>
+                    </p>
+                </div>
+          </motion.div>
+        )
+      })}
     </div>
   );
 };
