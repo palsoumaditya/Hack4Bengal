@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@civic/auth/react';
-import { CivicAuthButton } from '@/app/components/ui/CivicAuthButton';
+import { useUser, SignInButton } from '@civic/auth/react';
+
 import styles from './worker.module.css';
 
 const WorkerIntroAnimation = () => (
@@ -14,7 +14,12 @@ const WorkerIntroAnimation = () => (
     </div>
 );
 
-const ThemedLoadingAnimation = ({ loadingText, onAnimationComplete }) => {
+interface ThemedLoadingAnimationProps {
+    loadingText: string;
+    onAnimationComplete: () => void;
+}
+
+const ThemedLoadingAnimation = ({ loadingText, onAnimationComplete }: ThemedLoadingAnimationProps) => {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
@@ -91,7 +96,7 @@ export default function WorkerGatewayPage() {
         if (!user) return;
         console.log("Animation complete. Redirecting now...");
         localStorage.setItem('workerSessionActive', 'true');
-        const workerProfile = localStorage.getItem(`workerProfile_${user.did}`);
+        const workerProfile = localStorage.getItem(`workerProfile_${user.id}`);
         
         if (workerProfile) {
             router.push('/worker/dashboard');
@@ -120,7 +125,7 @@ export default function WorkerGatewayPage() {
                     Sign in or create an account to manage your profile and jobs.
                 </p>
                 <div className={styles.buttonContainer}>
-                    <CivicAuthButton signInMethods={['google', 'apple']} />
+                    <SignInButton signInMethods={['google', 'apple']} />
                 </div>
             </div>
         </div>
