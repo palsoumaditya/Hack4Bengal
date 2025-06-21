@@ -1,27 +1,39 @@
 'use client'
 
 import React from 'react';
-import styles from './AdminDashboard.module.css'; // Use the main dashboard styles
+import { motion } from 'framer-motion';
 
 interface StatsCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
-  color: 'blue' | 'green' | 'yellow' | 'purple';
+  className?: string;
 }
 
-const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, color }) => {
-  const cardStyle = `${styles.card} flex items-center p-4`;
-  const iconStyle = `${styles.cardIcon} ${styles[color]} mr-4`;
+const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+      },
+    },
+  };
 
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, className }) => {
   return (
-    <div className={cardStyle}>
-      <div className={iconStyle}>{icon}</div>
+    <motion.div 
+      className={`card statsCard ${className || ''}`}
+      variants={itemVariants}
+    >
+      <div className="statsIcon">{icon}</div>
       <div>
-        <p className="text-sm text-gray-500 font-medium">{title}</p>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
+        <p className="statsTitle">{title}</p>
+        <p className="statsValue">{value}</p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

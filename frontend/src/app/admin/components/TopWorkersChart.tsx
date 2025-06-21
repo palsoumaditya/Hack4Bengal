@@ -1,58 +1,66 @@
 'use client';
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { motion } from 'framer-motion';
+import { Award, Star, TrendingUp, User } from 'lucide-react';
 
 interface WorkerData {
   name: string;
   income: number;
+  rating: number;
+  completionRate: number;
 }
 
 interface TopWorkersChartProps {
   data: WorkerData[];
 }
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088fe'];
-
-const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="p-3 bg-white rounded-lg shadow-lg border border-gray-200">
-          <p className="font-bold text-gray-800">{`${payload[0].payload.name}`}</p>
-          <p className="text-sm" style={{color: payload[0].fill}}>{`Income: $${payload[0].value.toLocaleString()}`}</p>
-        </div>
-      );
-    }
-    return null;
-};
-
-export default function TopWorkersChart({ data }: TopWorkersChartProps) {
+const TopWorkersChart: React.FC<TopWorkersChartProps> = ({ data }) => {
   if (!data || data.length === 0) {
-    return <p className="text-center text-gray-500">No worker data available.</p>;
+    return <p className="text-center text-gray-500 py-8">No worker data available.</p>;
   }
-  
-  const sortedData = [...data].sort((a, b) => a.income - b.income);
+
+  const sortedData = [...data].sort((a, b) => b.income - a.income);
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={sortedData} layout="vertical" margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-        <XAxis type="number" hide />
-        <YAxis 
-            dataKey="name" 
-            type="category" 
-            stroke="#9ca3af" 
-            fontSize={12} 
-            tickLine={false} 
-            axisLine={false}
-            width={80}
-        />
-        <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(241, 245, 249, 0.5)'}} />
-        <Bar dataKey="income" background={{ fill: '#f1f5f9' }} animationDuration={1500}>
-            {sortedData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="space-y-4 -mx-4 px-4 h-full overflow-y-auto">
+      {sortedData.map((worker, index) => (
+        <motion.div
+          key={worker.name}
+          className="flex items-center space-x-4 p-3 rounded-xl transition-colors hover:bg-gray-50"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+            <User className="w-5 h-5 text-gray-500" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-gray-800 truncate">{worker.name}</p>
+            <div className="flex items-center text-xs text-gray-500 space-x-2">
+                <div className="flex items-center" title="Rating">
+                    <Star className="w-3 h-3 text-amber-400 mr-1" fill="currentColor" />
+                    <span>{worker.rating.toFixed(1)}</span>
+                </div>
+                <div className="flex items-center" title="Completion Rate">
+                    <TrendingUp className="w-3 h-3 text-emerald-500 mr-1" />
+                    <span>{worker.completionRate}%</span>
+                </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-semibold text-gray-800">${worker.income.toLocaleString()}</p>
+            {index === 0 && (
+              <div className="flex items-center justify-end text-xs text-amber-500 font-semibold mt-1">
+                <Award className="w-3 h-3 mr-1" />
+                Top Performer
+              </div>
+            )}
+          </div>
+        </motion.div>
+      ))}
+    </div>
   );
-} 
+};
+
+export default TopWorkersChart; 
