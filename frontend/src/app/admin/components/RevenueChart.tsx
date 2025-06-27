@@ -18,7 +18,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div style={{ background: '#18181b', color: '#fff', borderRadius: 8, padding: 12, minWidth: 120, border: '1px solid #6366f1', boxShadow: '0 2px 12px #6366f122' }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{label}</div>
         <div style={{ fontSize: 18, fontWeight: 700, color: '#6366f1' }}>
-          ${payload[0].value.toLocaleString()}
+          ₹{payload[0].value.toLocaleString()}
         </div>
       </div>
     );
@@ -36,7 +36,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
   }
 
   const formatYAxis = (tickItem: number) => {
-    return `$${(tickItem / 1000)}k`;
+    return `₹${(tickItem / 1000)}k`;
   };
 
   return (

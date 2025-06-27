@@ -1,12 +1,13 @@
-"use client";
-import { useState } from 'react';
-import FloatingButton from '@/app/components/ui/ChatWidget/FloatingButton';
+"use client"
+
 import ChatModal from '@/app/components/ui/ChatWidget/ChatModal';
 import Image from "next/image";
 import ServiceSelection from '@/app/components/Feature/Page';
 import WaitingTime from "@/app/components/Waiting-Time/Page";
 import FAQ from "@/app/components/FAQ/Page";
 import Testimonial from "@/app/components/Testimonial/page";
+import { useState } from 'react';
+import FloatingButton from './components/ui/ChatWidget/FloatingButton';
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -143,6 +144,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-

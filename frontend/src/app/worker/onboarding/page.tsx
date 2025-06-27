@@ -178,6 +178,42 @@ export default function WorkerOnboardingPage() {
     "idle" | "loading" | "success" | "error"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isCheckingWorker, setIsCheckingWorker] = useState(true);
+
+  useEffect(() => {
+    if (user?.email) {
+      setFormData((prev) => ({ ...prev, email: user.email || "" }));
+      // Check if worker already exists
+      checkWorkerExists(user.email);
+    } else {
+      setIsCheckingWorker(false);
+    }
+  }, [user]);
+
+  const checkWorkerExists = async (email: string) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/v1/workers/email/${encodeURIComponent(email)}`);
+      
+      if (response.ok) {
+        // Worker exists, redirect to dashboard
+        const workerData = await response.json();
+        console.log("Worker already exists:", workerData);
+        router.push("/worker/dashboard");
+        return;
+      } else if (response.status === 404) {
+        // Worker doesn't exist, show onboarding form
+        console.log("Worker not found, showing onboarding form");
+        setIsCheckingWorker(false);
+      } else {
+        // Some other error
+        console.error("Error checking worker existence:", response.status);
+        setIsCheckingWorker(false);
+      }
+    } catch (error) {
+      console.error("Error checking worker existence:", error);
+      setIsCheckingWorker(false);
+    }
+  };
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -367,6 +403,21 @@ export default function WorkerOnboardingPage() {
   };
 
   const RequiredStar = () => <span className={styles.requiredStar}>*</span>;
+
+  // Show loading screen while checking if worker exists
+  if (isCheckingWorker) {
+    return (
+      <div className={styles.pageWrapper}>
+        <div className={styles.formContainer}>
+          <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+            <div className={styles.spinner} style={{ margin: '0 auto 1rem auto' }}></div>
+            <h2>Checking your profile...</h2>
+            <p>Please wait while we verify your account.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.pageWrapper}>

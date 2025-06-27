@@ -152,39 +152,71 @@
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
+    transition: all 0.2s ease-in-out;
     font-weight: 500;
     color: #374151;
+    background-color: #fff;
 }
 
 .checkboxLabel:hover {
     border-color: var(--primary-color-light);
+    background-color: #f9fafb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.hiddenCheckbox:checked ~ span {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.checkboxText {
+    transition: color 0.2s ease-in-out, font-weight 0.2s ease-in-out;
+}
+
+.hiddenCheckbox:checked ~ .checkboxText {
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .customCheckbox {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border: 2px solid var(--border-color);
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
+    position: relative;
+    background-color: #fff;
 }
 
 .hiddenCheckbox:checked+.customCheckbox {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 .customCheckbox svg {
     opacity: 0;
-    transition: opacity 0.1s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
 }
 
 .hiddenCheckbox:checked+.customCheckbox svg {
     opacity: 1;
+    color: white;
+    stroke: white;
+    stroke-width: 3;
+    transform: translate(-50%, -50%) scale(1);
 }
 
 /* --- Footer and Button --- */
@@ -238,6 +270,7 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 
@@ -266,4 +299,19 @@
     color: #22c55e;
     width: 50px;
     height: 50px;
+}
+
+/* Spinner for loading states */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

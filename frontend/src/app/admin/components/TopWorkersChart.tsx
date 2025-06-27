@@ -49,7 +49,7 @@ const TopWorkersChart: React.FC<TopWorkersChartProps> = ({ data }) => {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm font-semibold text-gray-800">${worker.income.toLocaleString()}</p>
+            <p className="text-sm font-semibold text-gray-800">₹{worker.income.toLocaleString()}</p>
             {index === 0 && (
               <div className="flex items-center justify-end text-xs text-amber-500 font-semibold mt-1">
                 <Award className="w-3 h-3 mr-1" />

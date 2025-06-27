@@ -47,7 +47,7 @@ const WorkerList: React.FC<WorkerListProps> = ({ workers }) => {
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4">${worker.income.toLocaleString()}</td>
+              <td className="px-6 py-4">₹{worker.income.toLocaleString()}</td>
               <td className="px-6 py-4">{worker.orders}</td>
             </tr>
           ))}
