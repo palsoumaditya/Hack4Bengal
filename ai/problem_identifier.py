@@ -1,7 +1,7 @@
 import os
 import google.generativeai as genai
 from typing import Optional, Dict
-
+# check 
 # Define your list of supported service keywords
 SERVICE_KEYWORDS = [
     "plumber", "mechanic", "diesel_mechanic", "motorcycle_mechanic",
